@@ -1,6 +1,7 @@
 package iodev.in.secondopinion;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -35,6 +36,7 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
@@ -72,8 +74,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 //                getPictureFromCamera();
-                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(cameraIntent, 1);
+//                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//                startActivityForResult(cameraIntent, 1);
+                startActivityForResult(new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.INTERNAL_CONTENT_URI), 1);
+
             }
         });
 
@@ -166,18 +170,40 @@ public class MainActivity extends AppCompatActivity {
 
         return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT);
     }
-
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode == RESULT_OK) {
-            if(requestCode == 1) {
-                Bitmap bitmap = (Bitmap) data.getExtras().get("data");
-                bitimage = bitmap;
-                displayImage.setImageBitmap(bitmap);
+
+
+        //Detects request codes
+        if(requestCode==1 && resultCode == Activity.RESULT_OK) {
+            Uri selectedImage = data.getData();
+            Bitmap bitmap = null;
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
+                bitimage=bitmap;
+                displayImage.setImageBitmap(bitimage);
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
         }
     }
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if(resultCode == RESULT_OK) {
+//            if(requestCode == 1) {
+//                Bitmap bitmap = (Bitmap) data.getExtras().get("data");
+//                bitimage = bitmap;
+//                displayImage.setImageBitmap(bitmap);
+//            }
+//        }
+//    }
 
     private void getPictureFromCamera() {
         Intent takePic =  new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
